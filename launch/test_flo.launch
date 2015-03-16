@@ -1,0 +1,8 @@
+<launch>
+
+  <include file="$(find msp_pr2_test)/launch/demo_flo.launch"/>
+
+<node name="test_flo" pkg="pr2_moveit_tutorials" 
+			type="test_flo" respawn="false" output="screen" >	
+  </node>
+</launch>
