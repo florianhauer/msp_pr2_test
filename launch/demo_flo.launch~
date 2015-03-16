@@ -7,7 +7,7 @@
     <arg name="load_robot_description" value="true"/>
   </include>
 
-  <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0.13 0.35 0 0 0 0 odom_combined base_footprint 100" /> 
+ <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0.13 0.35 0 0 0 0 odom_combined base_footprint 100" /> 
 
   <include file="$(find pr2_moveit_config)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
@@ -16,11 +16,11 @@
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
-  <include file="moeit_rviz_flo.launch">
+  <include file="$(find msp_pr2_test)/launch/moeit_rviz_flo.launch">
     <arg name="config" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
-  <include file="$(find pr2_moveit_config)/launch/default_warehouse_db.launch" if="$(arg db)"/>
+  <!-- <include file="$(find pr2_moveit_config)/launch/default_warehouse_db.launch" if="$(arg db)"/> -->
 
 </launch>

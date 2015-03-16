@@ -12,6 +12,8 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/RobotState.h>
 
+#include <tf/transform_broadcaster.h>
+
 #include <vector>
 
 #include <msp/Params.h>
@@ -182,6 +184,20 @@ int main(int argc, char **argv)
 	}
 	//robot state, change robot state
 	current_state = &(scene->getCurrentStateNonConst());
+	//set base position
+	group=kinematic_model->getJointModelGroup("base");
+	current_state->copyJointGroupPositions(group,group_variable_values);
+	group_variable_values[0] = 0.13; //set x to be close from the bookshelves
+	group_variable_values[1] = 0.35; //set y
+	setState(*current_state,group_variable_values);
+	//publishState(*current_state);
+	static tf::TransformBroadcaster br;
+	static tf::Transform transform;
+	transform.setOrigin( tf::Vector3(group_variable_values[0], group_variable_values[1], 0.0) );
+	tf::Quaternion q;
+	q.setRPY(0, 0, 0);
+	transform.setRotation(q);
+	ros::Timer timer = node_handle.createTimer(ros::Duration(0.1), [](const ros::TimerEvent&){br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/odom_combined", "base_footprint"));});
 	//add Obstacles
 	sleeper5.sleep();
 	sleeper5.sleep();
@@ -193,13 +209,6 @@ int main(int argc, char **argv)
 	group_variable_values[1] = 1.2;
 	group_variable_values[3] = -2.1;
 	//group_variable_values[3] = 0.0;
-	setState(*current_state,group_variable_values);
-	publishState(*current_state);
-	//set base position
-	group=kinematic_model->getJointModelGroup("base");
-	current_state->copyJointGroupPositions(group,group_variable_values);
-	group_variable_values[0] = 0.13; //set x to be close from the bookshelves
-	group_variable_values[1] = 0.35; //set y
 	setState(*current_state,group_variable_values);
 	publishState(*current_state);
 	//set current group to right arm for planning

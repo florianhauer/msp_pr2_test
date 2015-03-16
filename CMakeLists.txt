@@ -76,7 +76,7 @@ find_package(catkin REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 
-find_package(catkin REQUIRED COMPONENTS moveit_core moveit_ros_planning moveit_ros_planning_interface pluginlib cmake_modules)
+find_package(catkin REQUIRED COMPONENTS moveit_core moveit_ros_planning moveit_ros_planning_interface pluginlib cmake_modules tf)
 
 find_package(Boost REQUIRED system filesystem date_time thread)
 
@@ -87,6 +87,7 @@ catkin_package(
     moveit_core
     moveit_ros_planning_interface
     interactive_markers
+    tf
 )
 find_package(Eigen REQUIRED)
 
