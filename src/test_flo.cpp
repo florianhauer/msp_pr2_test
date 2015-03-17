@@ -13,8 +13,10 @@
 #include <moveit_msgs/RobotState.h>
 
 #include <tf/transform_broadcaster.h>
+#include <ros/package.h>
 
 #include <vector>
+#include <sstream>
 
 #include <msp/Params.h>
 #include <msp/State.h>
@@ -148,7 +150,10 @@ template <unsigned int DIM> bool addObstacles(Key<DIM> k, int depth, int size, T
 void addObstaclesToPlanningScene(){
 	moveit_msgs::PlanningScene planning_scene_msg;
 	planning_scene_msg.is_diff = false;
-	std::ifstream file("/home/florian/workspace/catkin_ws/src/plannerarena/problems/pr2_scenes/bookshelves.scene");
+	std::string path = ros::package::getPath("msp_pr2_test");
+	std::stringstream ss;
+	ss << path << "/scenes/bookshelves.scene";
+	std::ifstream file(ss.str());
 	scene->loadGeometryFromStream(file);
 	file.close();
 	scene->getPlanningSceneMsg(planning_scene_msg);
@@ -215,7 +220,7 @@ int main(int argc, char **argv)
 	group=kinematic_model->getJointModelGroup("right_arm");
 	current_state->copyJointGroupPositions(group,group_variable_values);
 	for(int i=0;i<group_variable_values.size();++i){
-		group_variable_values[i] = 0.0;
+		group_variable_values[i] = 0.001f;
 	}
 	group_variable_values[1]=-0.35;
 	group_variable_values[2]=-3.14;
@@ -226,29 +231,25 @@ int main(int argc, char **argv)
 	publishState(*current_state);
 	sleeper5.sleep();
 	sleeper5.sleep();
+	collision_detection::CollisionRobotPtr colRob = scene->getCollisionRobotNonConst ();
+	colRob->setPadding(0.04);
+	scene->propogateRobotPadding ();
 	moveit::core::JointBoundsVector bvec=group->getActiveJointModelsBounds();
-	for(auto v: bvec){
+	/*for(auto v: bvec){
 		for(auto v2: (*v)){
 			std::cout << v2.min_position_ << " , " << v2.max_position_ << std::endl;
 		}
 		std::cout <<std::endl;
-	}
-	collision_detection::CollisionRobotPtr colRob = scene->getCollisionRobotNonConst ();
-	//std::map< std::string, double > pad=colRob->getLinkPadding();
-	//for (auto& kv : pad) {
-    	//	std::cout << kv.first << " has padding value " << kv.second << std::endl;
-	//}
-	colRob->setPadding(0.04);
-	scene->propogateRobotPadding ();
+	}*/
 	//Create Tree
 	Tree<AD>* t=new Tree<AD>();
 	//Set Search Space Bounds
-	State<AD> minState(-1.5f);
-	State<AD> maxState(1.5f);
-	minState[2]=-3.5;
-	minState[3]=-2.25;
-	maxState[2]=0.75;
-	maxState[3]=0.25;
+	State<AD> minState;
+	State<AD> maxState;
+	for(int i=0;i<AD;++i){
+		minState[i]=(*(bvec[i]))[0].min_position_;
+		maxState[i]=(*(bvec[i]))[0].max_position_;
+	}
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
 	int depth=5;
@@ -278,10 +279,10 @@ int main(int argc, char **argv)
 	std::cout << "create algo" << std::endl;
 	MSP<AD> algo(t);
 	//Set algo parameters
-	State<AD> start(0.001f);
-	start[1]=-0.35f;
-	start[2]=-3.14f;
-	start[3]=-0.21f;
+	State<AD> start;
+	for(int i=0;i<AD;++i){
+		start[i]=group_variable_values[i];
+	}
 	//start[5]=-0.11f;
 	State<AD> goal(0.001f);
 	goal[1]=0.31f;
