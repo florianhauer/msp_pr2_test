@@ -219,20 +219,28 @@ int main(int argc, char **argv)
 	//set current group to right arm for planning
 	group=kinematic_model->getJointModelGroup("right_arm");
 	current_state->copyJointGroupPositions(group,group_variable_values);
+	std::vector<float> startvec(5);
+	startvec[0]=0.001f;
+	startvec[1]=-0.35f;
+	startvec[2]=-3.14f;
+	startvec[3]=-0.21f;
+	startvec[4]=-3.1f;
+	startvec[5]=-0.5f;
 	for(int i=0;i<group_variable_values.size();++i){
-		group_variable_values[i] = 0.001f;
+		group_variable_values[i] = startvec[i];
 	}
-	group_variable_values[1]=-0.35;
-	group_variable_values[2]=-3.14;
-	group_variable_values[3]=-0.21;
-	group_variable_values[4]=-3.1;
-	group_variable_values[5]=-0.5;
+	group_variable_values[0]=0.001f;
+	group_variable_values[1]=-0.35f;
+	group_variable_values[2]=-3.14f;
+	group_variable_values[3]=-0.21f;
+	group_variable_values[4]=-3.1f;
+	group_variable_values[5]=-0.5f;
 	setState(*current_state,group_variable_values);
 	publishState(*current_state);
 	sleeper5.sleep();
 	sleeper5.sleep();
 	collision_detection::CollisionRobotPtr colRob = scene->getCollisionRobotNonConst ();
-	colRob->setPadding(0.04);
+	colRob->setPadding(0.02);
 	scene->propogateRobotPadding ();
 	moveit::core::JointBoundsVector bvec=group->getActiveJointModelsBounds();
 	/*for(auto v: bvec){
@@ -250,9 +258,15 @@ int main(int argc, char **argv)
 		minState[i]=(*(bvec[i]))[0].min_position_;
 		maxState[i]=(*(bvec[i]))[0].max_position_;
 	}
+	/*State<AD> minState(-1.5f);
+	State<AD> maxState(1.5f);
+	minState[2]=-3.5;
+	minState[3]=-2.25;
+	maxState[2]=0.75;
+	maxState[3]=0.25;*/
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
-	int depth=5;
+	int depth=4;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
 	std::cout << "Obstacle creation " << std::setw(10) << 0.0 << "\% done.";
@@ -279,15 +293,13 @@ int main(int argc, char **argv)
 	std::cout << "create algo" << std::endl;
 	MSP<AD> algo(t);
 	//Set algo parameters
-	State<AD> start;
+	State<AD> start(0.001f);
 	for(int i=0;i<AD;++i){
-		start[i]=group_variable_values[i];
+		start[i]=startvec[i];
 	}
-	//start[5]=-0.11f;
 	State<AD> goal(0.001f);
 	goal[1]=0.31f;
 	goal[3]=-0.31f;
-	//start[5]=-0.11f;
 	bool initAlgo=algo.init(start,goal);
 	std::cout << "init algo " <<initAlgo << std::endl;
 	//Run algo
