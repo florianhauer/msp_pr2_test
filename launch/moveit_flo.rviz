@@ -526,7 +526,7 @@ Visualization Manager:
         Voxel Coloring: Z-Axis
         Voxel Rendering: Occupied Voxels
       Scene Robot:
-        Attached Body Color: 0; 0; 0
+        Attached Body Color: 255; 0; 0
         Links:
           All Links Enabled: true
           Expand Joint Details: false
@@ -1462,10 +1462,10 @@ Visualization Manager:
         Z: 2.23518e-07
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.429797
+      Pitch: 0.199798
       Target Frame: base_link
       Value: XYOrbit (rviz)
-      Yaw: 4.02678
+      Yaw: 4.12679
     Saved: ~
 Window Geometry:
   Displays:

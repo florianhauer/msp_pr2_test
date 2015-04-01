@@ -103,9 +103,13 @@ link_directories(${catkin_LIBRARY_DIRS})
 SET( CMAKE_CXX_FLAGS  "-std=c++0x" )
 SET( CMAKE_BUILD_TYPE Debug)
 
-add_executable(test_flo src/test_flo.cpp)
-target_link_libraries(test_flo ${catkin_LIBRARIES} ${Boost_LIBRARIES} kshortestpaths)
-install(TARGETS test_flo DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+add_executable(4d src/4d.cpp)
+target_link_libraries(4d ${catkin_LIBRARIES} ${Boost_LIBRARIES} kshortestpaths)
+install(TARGETS 4d DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(4d_book src/4d_book.cpp)
+target_link_libraries(4d_book ${catkin_LIBRARIES} ${Boost_LIBRARIES} kshortestpaths)
+install(TARGETS 4d_book DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 

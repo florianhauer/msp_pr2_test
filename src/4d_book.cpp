@@ -59,50 +59,7 @@ template <unsigned int DIM> bool isObstacle(State<DIM> s){
 
 int Ocount=0;
 time_t timerStart;
-/*
-template <unsigned int DIM> bool addObstacles(State<DIM> s, int depth, float scale, Tree<DIM>* t){
-	if(depth==t->getMaxDepth()){
-		Ocount++;
-		if(Ocount%((int)pow(2,8))==0){
-			std::cout << "\r" << "Obstacle creation " << std::setw(10) << Ocount*100.0/pow(2,DIM*depth) << "\% done, ";
-			time_t timerNow=time(NULL);	
-			int seconds = (int)difftime(timerNow,timerStart);
-			seconds=(int)(seconds*(1-( Ocount/pow(2,DIM*depth)))/( Ocount/pow(2,DIM*depth)));
-			int hours = seconds/3600;
-			int minutes= seconds/60;
-			seconds=seconds%60;
-			std::cout << "time left: " 	<< std::setw(4) << hours << ":" 
-							<< std::setw(2) << minutes << ":" 
-							<< std::setw(2) << seconds;
-		}
-		//finest resolution: update obstacle presence
-		//if obstacles
-		if(isObstacle(s)){
-			//add obstacle to the tree
-			t->addObstacle(s);
-			//indicate that the tree was updated
-			return true;
-		}else{
-			//indicate that not changes were performed on the tree
-			return false;
-		}
-	}else{
-		bool update=false;
-		//update children
-		for(const State<DIM>& dir: *(t->getDirections())){
-			update=addObstacles(s+dir*(0.5f*scale),depth+1,0.5f*scale,t) || update;
-		}
-		//if any children created, get node
-		if(update){
-			Node<DIM>* cur=t->getNode(s,depth);
-			//prune and update val (single stage, no recurrence)
-			cur->update(false);
-		}
-		//indicate if updates were performed on the tree
-		return update;
-	}
-}
-*/
+
 template <unsigned int DIM> bool addObstacles(Key<DIM> k, int depth, int size, Tree<DIM>* t){
 	if(depth==t->getMaxDepth()){
 		Ocount++;
@@ -112,7 +69,7 @@ template <unsigned int DIM> bool addObstacles(Key<DIM> k, int depth, int size, T
 			int seconds = (int)difftime(timerNow,timerStart);
 			seconds=(int)(seconds*(1-( Ocount/pow(2,DIM*depth)))/( Ocount/pow(2,DIM*depth)));
 			int hours = seconds/3600;
-			int minutes= seconds/60;
+			int minutes= (seconds/60)%60;
 			seconds=seconds%60;
 			std::cout << "time left: " 	<< std::setw(4) << hours << ":" 
 							<< std::setw(2) << minutes << ":" 
@@ -148,6 +105,25 @@ template <unsigned int DIM> bool addObstacles(Key<DIM> k, int depth, int size, T
 }
 
 void addObstaclesToPlanningScene(){
+	moveit_msgs::AttachedCollisionObject attached_object;
+	attached_object.link_name = "r_wrist_roll_link";
+	attached_object.object.header.frame_id = "r_wrist_roll_link";
+	attached_object.object.id = "box";
+	geometry_msgs::Pose pose;
+	pose.position.x=0.2;
+	pose.orientation.w = 1.0;
+	shape_msgs::SolidPrimitive primitive;
+	primitive.type = primitive.BOX;  
+	primitive.dimensions.resize(3);
+	primitive.dimensions[0] = 0.15;
+	primitive.dimensions[1] = 0.05;
+	primitive.dimensions[2] = 0.25;  
+	attached_object.object.primitives.push_back(primitive);
+	attached_object.object.primitive_poses.push_back(pose);
+	attached_object.object.operation = attached_object.object.ADD;
+
+	scene->processAttachedCollisionObjectMsg(attached_object);
+
 	moveit_msgs::PlanningScene planning_scene_msg;
 	planning_scene_msg.is_diff = false;
 	std::string path = ros::package::getPath("msp_pr2_test");
@@ -225,7 +201,7 @@ int main(int argc, char **argv)
 	startvec[2]=-3.14f;
 	startvec[3]=-0.21f;
 	startvec[4]=-3.1f;
-	startvec[5]=-0.5f;
+	startvec[5]=-0.1f;
 	for(int i=0;i<group_variable_values.size();++i){
 		group_variable_values[i] = startvec[i];
 	}
@@ -234,7 +210,7 @@ int main(int argc, char **argv)
 	group_variable_values[2]=-3.14f;
 	group_variable_values[3]=-0.21f;
 	group_variable_values[4]=-3.1f;
-	group_variable_values[5]=-0.5f;
+	group_variable_values[5]=-0.1f;
 	setState(*current_state,group_variable_values);
 	publishState(*current_state);
 	sleeper5.sleep();
@@ -243,12 +219,13 @@ int main(int argc, char **argv)
 	colRob->setPadding(0.02);
 	scene->propogateRobotPadding ();
 	moveit::core::JointBoundsVector bvec=group->getActiveJointModelsBounds();
-	/*for(auto v: bvec){
+	//*
+	for(auto v: bvec){
 		for(auto v2: (*v)){
 			std::cout << v2.min_position_ << " , " << v2.max_position_ << std::endl;
 		}
 		std::cout <<std::endl;
-	}*/
+	}//*/
 	//Create Tree
 	Tree<AD>* t=new Tree<AD>();
 	//Set Search Space Bounds
@@ -266,7 +243,7 @@ int main(int argc, char **argv)
 	maxState[3]=0.25;*/
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
-	int depth=4;
+	int depth=6;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
 	std::cout << "Obstacle creation " << std::setw(10) << 0.0 << "\% done.";
@@ -277,7 +254,7 @@ int main(int argc, char **argv)
 	time_t timerNow=time(NULL);	
 	int seconds = (int)difftime(timerNow,timerStart);
 	int hours = seconds/3600;
-	int minutes= seconds/60;
+	int minutes= (seconds/60)%60;
 	seconds=seconds%60;
 	std::cout << "Obstacles created in " 	<< std::setw(4) << hours << ":" 
 						<< std::setw(2) << minutes << ":" 
@@ -308,7 +285,7 @@ int main(int argc, char **argv)
 		timerNow=time(NULL);	
 		int seconds = (int)difftime(timerNow,timerStart);
 		int hours = seconds/3600;
-		int minutes= seconds/60;
+		int minutes= (seconds/60)%60;
 		seconds=seconds%60;
 		std::cout << "Solution found in " 	<< std::setw(4) << hours << ":" 
 						<< std::setw(2) << minutes << ":" 
