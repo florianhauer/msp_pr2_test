@@ -111,6 +111,10 @@ add_executable(4d_book src/4d_book.cpp)
 target_link_libraries(4d_book ${catkin_LIBRARIES} ${Boost_LIBRARIES} kshortestpaths)
 install(TARGETS 4d_book DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+add_executable(2arms src/2arms.cpp)
+target_link_libraries(2arms ${catkin_LIBRARIES} ${Boost_LIBRARIES} kshortestpaths)
+install(TARGETS 2arms DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 ## Specify additional locations of header files

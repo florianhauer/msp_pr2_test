@@ -145,7 +145,7 @@ void addObstaclesToPlanningScene(){
 	planning_scene_msg.is_diff = false;
 	std::string path = ros::package::getPath("msp_pr2_test");
 	std::stringstream ss;
-	ss << path << "/scenes/bookshelves.scene";
+	ss << path << "/scenes/bookshelves_big.scene";
 	std::ifstream file(ss.str());
 	scene->loadGeometryFromStream(file);
 	file.close();
@@ -186,7 +186,6 @@ int main(int argc, char **argv)
 	group=kinematic_model->getJointModelGroup("base");
 	current_state->copyJointGroupPositions(group,group_variable_values);
 	group_variable_values[0] = 0.13; //set x to be close from the bookshelves
-	group_variable_values[1] = 0.35; //set y
 	setState(*current_state,group_variable_values);
 	//publishState(*current_state);
 	static tf::TransformBroadcaster br;
