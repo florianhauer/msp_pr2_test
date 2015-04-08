@@ -185,7 +185,8 @@ int main(int argc, char **argv)
 	//set base position
 	group=kinematic_model->getJointModelGroup("base");
 	current_state->copyJointGroupPositions(group,group_variable_values);
-	group_variable_values[0] = 0.13; //set x to be close from the bookshelves
+	group_variable_values[0] = 0.00; //set x to be close from the bookshelves
+	group_variable_values[1] = 0.00; //set y
 	setState(*current_state,group_variable_values);
 	//publishState(*current_state);
 	static tf::TransformBroadcaster br;
@@ -194,7 +195,7 @@ int main(int argc, char **argv)
 	tf::Quaternion q;
 	q.setRPY(0, 0, 0);
 	transform.setRotation(q);
-	ros::Timer timer = node_handle.createTimer(ros::Duration(0.1), [](const ros::TimerEvent&){br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/odom_combined", "base_footprint"));});
+	ros::Timer timer = node_handle.createTimer(ros::Duration(1.0), [](const ros::TimerEvent&){br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/odom_combined", "base_footprint"));});
 	//add Obstacles
 	sleeper5.sleep();
 	sleeper5.sleep();
@@ -232,7 +233,7 @@ int main(int argc, char **argv)
 	sleeper5.sleep();
 	sleeper5.sleep();
 	collision_detection::CollisionRobotPtr colRob = scene->getCollisionRobotNonConst ();
-	colRob->setPadding(0.02);
+	colRob->setPadding(0.04);
 	scene->propogateRobotPadding ();
 	moveit::core::JointBoundsVector bvec=group->getActiveJointModelsBounds();
 	//*
@@ -321,6 +322,8 @@ int main(int argc, char **argv)
 	//Set algo parameters
 	bool initAlgo=algo.init(start,goal);
 	std::cout << "init algo " <<initAlgo << std::endl;
+	algo.setAlpha(2*sqrt(AD));
+	algo.setSpeedUp(true);
 	//Run algo
 	timerStart=time(NULL);
 	if(initAlgo && algo.run()){
