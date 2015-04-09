@@ -1,4 +1,11 @@
-bookshelves
+bookshelves_big
+* bookshelf_center_wall
+1
+box
+0.60 0.02 1.40
+0.95 0.00 0.7
+0 0 0 1
+0 0 0 0
 * bookshelf_bottom
 1
 box
