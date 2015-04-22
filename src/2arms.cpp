@@ -337,6 +337,7 @@ int main(int argc, char **argv)
 	std::cout << "init algo " <<initAlgo << std::endl;
 	algo.setAlpha(2*sqrt(AD));
 	algo.setSpeedUp(true);
+	algo.setNewNeighboorCheck(true);
 	//Run algo
 	timerStart=time(NULL);
 	if(initAlgo && algo.run()){
@@ -470,15 +471,17 @@ int main(int argc, char **argv)
 	//variables to hold results
 	//Create algo
 	std::cout << "create algo" << std::endl;
-	algo=MSP<AD>(t);
+	algo.clear();
+	MSP<AD> algo2(t);
 	//Set algo parameters
-	initAlgo=algo.init(startl,goall);
+	initAlgo=algo2.init(startl,goall);
 	std::cout << "init algo " <<initAlgo << std::endl;
-	algo.setAlpha(2*sqrt(AD));
-	algo.setSpeedUp(true);
+	algo2.setAlpha(2*sqrt(AD));
+	algo2.setSpeedUp(true);
+	algo2.setNewNeighboorCheck(true);
 	//Run algo
 	timerStart=time(NULL);
-	if(initAlgo && algo.run()){
+	if(initAlgo && algo2.run()){
 		timerNow=time(NULL);	
 		int seconds = (int)difftime(timerNow,timerStart);
 		int hours = seconds/3600;
@@ -489,16 +492,16 @@ int main(int argc, char **argv)
 						<< std::setw(2) << seconds 
 						<< std::endl;
 		std::cout << "raw solution" <<std::endl;
-		std::deque<State<AD>> sol=algo.getPath();
+		std::deque<State<AD>> sol=algo2.getPath();
 		std::cout << "Path length: " << sol.size() << std::endl;
-		std::cout << "Path cost: " << algo.getPathCost() << std::endl;
+		std::cout << "Path cost: " << algo2.getPathCost() << std::endl;
 		//std::cout << "Path :" << std::endl;
 		//for(std::deque<State<AD>>::iterator it=sol.begin(),end=sol.end();it!=end;++it){
 		//	std::cout << (*it) << " -- ";
 		//}
 		//std::cout << std::endl;
 		std::cout << "smoothed solution" <<std::endl;
-		sol=algo.getSmoothedPath();
+		sol=algo2.getSmoothedPath();
 		std::cout << "Path length: " << sol.size() << std::endl;
 		soll=sol;
 	}else{

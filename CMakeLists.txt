@@ -101,7 +101,7 @@ link_directories(${catkin_LIBRARY_DIRS})
 ###########
 
 SET( CMAKE_CXX_FLAGS  "-std=c++0x" )
-SET( CMAKE_BUILD_TYPE Debug)
+SET( CMAKE_BUILD_TYPE Release)
 
 add_executable(4d src/4d.cpp)
 target_link_libraries(4d ${catkin_LIBRARIES} ${Boost_LIBRARIES} kshortestpaths)
