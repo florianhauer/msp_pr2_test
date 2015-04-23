@@ -303,7 +303,7 @@ int main(int argc, char **argv)
 	algo.setMapLearning(true,20,isObstacle);
 	algo.setSpeedUp(true);
 	algo.setAlpha(sqrt(AD));
-	algo.setEpsilon(0.1);
+	algo.setEpsilon(0.5);
 	bool initAlgo=algo.init(start,goal);
 	std::cout << "init algo " <<initAlgo << std::endl;
 	//Run algo
