@@ -268,46 +268,11 @@ int main(int argc, char **argv)
 	//Set Tree Max Depth
 	int depth=5;
 	t->setMaxDepth(depth);
-
-	//Create algo
-	std::cout << "create algo" << std::endl;
-	MSP<AD> algo(t);
-	//Set algo parameters
-	State<AD> start(0.001f);
-	for(int i=0;i<AD;++i){
-		start[i]=startvec[i];
-	}
-	State<AD> goal(0.001f);
-	goal[1]=0.31f;
-	goal[3]=-0.31f;
-	Key<AD> k;
-	if(!(t->getKey(start,k) && !isObstacle(t->getState(k)))){
-		std::cout << "start not in free space" << std::endl;
-		std::cout << "desired start : " << start << std::endl;
-		std::cout << "actual start : " << t->getState(k) << " with key " << k << std::endl;
-		std::cout << "is obstacle : " << isObstacle(t->getState(k)) << std::endl;
-		for(int i=0;i<group_variable_values.size();++i){
-			group_variable_values[i] = t->getState(k)[i];
-		}
-		setState(*current_state,group_variable_values);
-		publishState(*current_state);
-		exit(1);
-	}
-	if(!(t->getKey(goal,k) && !isObstacle(t->getState(k)))){
-		std::cout << "goal not in free space" << std::endl;
-		std::cout << "desired goal : " << goal << std::endl;
-		std::cout << "actual goal : " << t->getState(k) << " with key " << k << std::endl;
-		for(int i=0;i<group_variable_values.size();++i){
-			group_variable_values[i] = t->getState(k)[i];
-		}
-		setState(*current_state,group_variable_values);
-		publishState(*current_state);
-		exit(1);
-	}
 	//Depth First Obstacle Creation
 	std::cout << "Obstacle creation " << std::setw(10) << 0.0 << "\% done.";
 	timerStart=time(NULL);
-	//addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
+	//addObstacles(t->getRootState(),0,1.0f,t);
+	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
 	std::cout << std::endl;
 	time_t timerNow=time(NULL);	
 	int seconds = (int)difftime(timerNow,timerStart);
@@ -323,11 +288,18 @@ int main(int argc, char **argv)
 //	std::cout.flags(std::ios_base::right);
 //	std::cout<<*(t->getRoot())<<std::endl;
 //	std::cout.width(prev);
-	algo.setAlpha(2*sqrt(AD));
-	algo.setSpeedUp(true);
-	algo.setNewNeighboorCheck(true);
-	algo.setEpsilon(0.99);
-	algo.setMapLearning(true,20,isObstacle);
+
+	//Create algo
+	std::cout << "create algo" << std::endl;
+	MSP<AD> algo(t);
+	//Set algo parameters
+	State<AD> start(0.001f);
+	for(int i=0;i<AD;++i){
+		start[i]=startvec[i];
+	}
+	State<AD> goal(0.001f);
+	goal[1]=0.31f;
+	goal[3]=-0.31f;
 	bool initAlgo=algo.init(start,goal);
 	std::cout << "init algo " <<initAlgo << std::endl;
 	//Run algo
@@ -352,7 +324,7 @@ int main(int argc, char **argv)
 		//}
 		//std::cout << std::endl;
 		std::cout << "smoothed solution" <<std::endl;
-		//sol=algo.getSmoothedPath();
+		sol=algo.getSmoothedPath();
 		std::cout << "Path length: " << sol.size() << std::endl;
 		//Visualize results
 		ros::Duration sleeper1(0.01);
