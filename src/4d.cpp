@@ -291,7 +291,6 @@ int main(int argc, char **argv)
 	//Create algo
 	std::cout << "create algo" << std::endl;
 	MSP<AD> algo(t);
-	//Set algo parameters
 	State<AD> start(0.001f);
 	for(int i=0;i<AD;++i){
 		start[i]=startvec[i];
@@ -299,11 +298,12 @@ int main(int argc, char **argv)
 	State<AD> goal(0.001f);
 	goal[1]=0.31f;
 	goal[3]=-0.31f;
+	//Set algo parameters
 	algo.setNewNeighboorCheck(true);
-	algo.setMapLearning(true,20,isObstacle);
+	algo.setMapLearning(true,10,isObstacle);
 	algo.setSpeedUp(true);
-	algo.setAlpha(sqrt(AD));
-	algo.setEpsilon(0.5);
+	algo.setAlpha(2*sqrt(AD));
+	algo.setEpsilon(0.2);
 	bool initAlgo=algo.init(start,goal);
 	std::cout << "init algo " <<initAlgo << std::endl;
 	//Run algo

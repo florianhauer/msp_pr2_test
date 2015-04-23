@@ -298,8 +298,7 @@ int main(int argc, char **argv)
 	//Depth First Obstacle Creation
 	std::cout << "Obstacle creation " << std::setw(10) << 0.0 << "\% done.";
 	timerStart=time(NULL);
-	//addObstacles(t->getRootState(),0,1.0f,t);
-	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
+	//addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
 	std::cout << std::endl;
 	time_t timerNow=time(NULL);	
 	int seconds = (int)difftime(timerNow,timerStart);
@@ -320,10 +319,13 @@ int main(int argc, char **argv)
 	std::cout << "create algo" << std::endl;
 	MSP<AD> algo(t);
 	//Set algo parameters
+	algo.setNewNeighboorCheck(true);
+	algo.setMapLearning(true,10,isObstacle);
+	algo.setSpeedUp(true);
+	algo.setAlpha(2*sqrt(AD));
+	algo.setEpsilon(0.5);
 	bool initAlgo=algo.init(start,goal);
 	std::cout << "init algo " <<initAlgo << std::endl;
-	algo.setAlpha(2*sqrt(AD));
-	algo.setSpeedUp(true);
 	//Run algo
 	timerStart=time(NULL);
 	if(initAlgo && algo.run()){
