@@ -271,8 +271,7 @@ int main(int argc, char **argv)
 	//Depth First Obstacle Creation
 	std::cout << "Obstacle creation " << std::setw(10) << 0.0 << "\% done.";
 	timerStart=time(NULL);
-	//addObstacles(t->getRootState(),0,1.0f,t);
-	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
+	//addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
 	std::cout << std::endl;
 	time_t timerNow=time(NULL);	
 	int seconds = (int)difftime(timerNow,timerStart);
@@ -300,6 +299,11 @@ int main(int argc, char **argv)
 	State<AD> goal(0.001f);
 	goal[1]=0.31f;
 	goal[3]=-0.31f;
+	algo.setNewNeighboorCheck(true);
+	algo.setMapLearning(true,20,isObstacle);
+	algo.setSpeedUp(true);
+	algo.setAlpha(sqrt(AD));
+	algo.setEpsilon(0.5);
 	bool initAlgo=algo.init(start,goal);
 	std::cout << "init algo " <<initAlgo << std::endl;
 	//Run algo
