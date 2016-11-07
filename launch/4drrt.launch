@@ -1,0 +1,7 @@
+<launch>
+
+  	<include file="$(find msp_pr2_test)/launch/demo_flo.launch"/>
+
+	<node name="four_dim_rrt" pkg="msp_pr2_test" type="4drrt" respawn="false" output="screen"  >	</node> 
+
+</launch>

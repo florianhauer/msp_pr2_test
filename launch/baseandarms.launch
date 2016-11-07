@@ -1,0 +1,7 @@
+<launch>
+
+  	<include file="$(find msp_pr2_test)/launch/demo_flo.launch"/>
+
+	<node name="baseandarms" pkg="msp_pr2_test" type="baseandarms" respawn="false" output="screen"  >	</node> 
+
+</launch>

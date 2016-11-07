@@ -91,8 +91,10 @@ catkin_package(
 )
 find_package(Eigen REQUIRED)
 
+find_package(OMPL REQUIRED)
 
-include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
+#include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS}  ${OMPL_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS} /usr/local/include/ompl/)
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
@@ -104,15 +106,28 @@ SET( CMAKE_CXX_FLAGS  "-std=c++0x" )
 SET( CMAKE_BUILD_TYPE Debug)
 
 add_executable(4d src/4d.cpp)
-target_link_libraries(4d ${catkin_LIBRARIES} ${Boost_LIBRARIES} kshortestpaths)
+target_link_libraries(4d ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 install(TARGETS 4d DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+add_executable(4drrt src/4drrt.cpp)
+target_link_libraries(4drrt ${catkin_LIBRARIES} ${Boost_LIBRARIES}   ${OMPL_LIBRARIES})
+#target_link_libraries(4drrt ${catkin_LIBRARIES} ${Boost_LIBRARIES}  /home/florian/workspace/ompl_integration/build/Release/lib/libompl.so)
+install(TARGETS 4drrt DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(8drtt src/test.cpp)
+target_link_libraries(8drtt ${catkin_LIBRARIES} ${Boost_LIBRARIES}   ${OMPL_LIBRARIES})
+install(TARGETS 8drtt DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(baseandarms src/baseandarms.cpp)
+target_link_libraries(baseandarms ${catkin_LIBRARIES} ${Boost_LIBRARIES}   ${OMPL_LIBRARIES})
+install(TARGETS baseandarms DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 add_executable(4d_book src/4d_book.cpp)
-target_link_libraries(4d_book ${catkin_LIBRARIES} ${Boost_LIBRARIES} kshortestpaths)
+target_link_libraries(4d_book ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 install(TARGETS 4d_book DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 add_executable(2arms src/2arms.cpp)
-target_link_libraries(2arms ${catkin_LIBRARIES} ${Boost_LIBRARIES} kshortestpaths)
+target_link_libraries(2arms ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 install(TARGETS 2arms DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
