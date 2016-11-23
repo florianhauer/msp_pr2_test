@@ -13,9 +13,9 @@
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
-  <include file="$(find msp_pr2_test)/launch/moeit_rviz_flo.launch">
+  <!-- <include file="$(find msp_pr2_test)/launch/moeit_rviz_flo.launch">
     <arg name="config" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
-  </include>
+  </include> -->
 
 </launch>

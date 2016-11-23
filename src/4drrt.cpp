@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <fstream>
 #include <ctime>
+#include <mutex>
 
 #include <msp/State.h>
 
@@ -32,9 +33,12 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/geometric/planners/rrt/DRRT.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-
 #include <ompl/geometric/planners/rrt/RRTsharp.h>
+#include <ompl/geometric/planners/cforest/CForest.h>
+
 #include <ompl/tools/benchmark/Benchmark.h>
+
+#include <ros/console.h>
 
 #define AD 4
 
@@ -72,13 +76,30 @@ void setState(robot_state::RobotState& st,std::vector<double> group_variable_val
 	st.setJointGroupPositions(group,group_variable_values);
 }
 
+std::mutex mut;
+
 bool isObstacle(const ob::State* state){
+    mut.lock();    
 	ompl::base::ScopedState<ompl::base::RealVectorStateSpace> s(space,state);
 	for(int i=0;i<s.reals().size();++i){
 			group_variable_values[i]=s[i];
 	}
 	setState(*current_state,group_variable_values);
-	return checkCollision(*current_state);
+	bool temp = checkCollision(*current_state);
+    mut.unlock();
+    return temp;
+}
+
+bool isObstacle2(const ob::State* state){ 
+	ompl::base::ScopedState<ompl::base::RealVectorStateSpace> s(space,state);
+    std::vector<double> vals;
+	robot_state::RobotState*  cs = &(scene->getCurrentStateNonConst());
+	cs->copyJointGroupPositions(group,vals);
+	for(int i=0;i<s.reals().size();++i){
+			vals[i]=s[i];
+	}
+	setState(*cs,vals);
+	return checkCollision(*cs);
 }
 
 time_t timerStart,timerNow;
@@ -240,47 +261,76 @@ int main(int argc, char **argv)
 
 	//pdef->setOptimizationObjective(ob::OptimizationObjectivePtr(new ob::PathLengthOptimizationObjective(si)));
 	// by default, use the Benchmark class
-	double runtime_limit = 200, memory_limit = 2048;
-	int run_count = 5;
-	ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, 0.05,true,true,false,false);
+	double runtime_limit = 300, memory_limit = 2048;
+	int run_count = 30;
+	ompl::tools::Benchmark::Request request(runtime_limit, memory_limit, run_count, 10,true,true,false,false);
 
 	ss.setOptimizationObjective(ob::OptimizationObjectivePtr(new ob::PathLengthOptimizationObjective(ss.getSpaceInformation())));
+    ss.setup();
 	ompl::tools::Benchmark b(ss, "pr2arm");
 
 	double range=0.4;
+    bool knearest=false;
 	//* benchmark
 	ompl::base::PlannerPtr rrtstar(new ompl::geometric::RRTstar(ss.getSpaceInformation()));
 	rrtstar->as<ompl::geometric::RRTstar>()->setName("RRT*");
 	rrtstar->as<ompl::geometric::RRTstar>()->setDelayCC(false);
 	rrtstar->as<ompl::geometric::RRTstar>()->setFocusSearch(false);
 	rrtstar->as<ompl::geometric::RRTstar>()->setRange(range);
+	rrtstar->as<ompl::geometric::RRTstar>()->setKNearest(knearest);
 	b.addPlanner(rrtstar);
 	ompl::base::PlannerPtr rrtsharpepsilon0c(new ompl::geometric::RRTsharp(ss.getSpaceInformation()));
 	rrtsharpepsilon0c->as<ompl::geometric::RRTsharp>()->setName("RRTsharp");
 	rrtsharpepsilon0c->as<ompl::geometric::RRTsharp>()->setRange(range);
+	rrtsharpepsilon0c->as<ompl::geometric::RRTsharp>()->setKNearest(knearest);
 	b.addPlanner(rrtsharpepsilon0c);
+	ompl::base::PlannerPtr rrtx(new ompl::geometric::RRTXstatic(ss.getSpaceInformation()));
+	rrtx->as<ompl::geometric::RRTXstatic>()->setName("RRTX0.1");
+	rrtx->as<ompl::geometric::RRTXstatic>()->setRange(range);
+	rrtx->as<ompl::geometric::RRTXstatic>()->setEpsilon(0.1);
+	rrtx->as<ompl::geometric::RRTXstatic>()->setKNearest(knearest);
+	b.addPlanner(rrtx);
 	//*
 	ompl::base::PlannerPtr drrttd(new ompl::geometric::DRRT(ss.getSpaceInformation()));
 	drrttd->as<ompl::geometric::DRRT>()->setName("DRRTtd");
 	drrttd->as<ompl::geometric::DRRT>()->setRange(range);
 	drrttd->as<ompl::geometric::DRRT>()->setVariant(ompl::geometric::DRRT::TREE);
 	drrttd->as<ompl::geometric::DRRT>()->setDelayOptimizationUntilSolution(true);
+	drrttd->as<ompl::geometric::DRRT>()->setKNearest(knearest);
 	b.addPlanner(drrttd);
 	ompl::base::PlannerPtr drrtt(new ompl::geometric::DRRT(ss.getSpaceInformation()));
 	drrtt->as<ompl::geometric::DRRT>()->setName("DRRTt");
 	drrtt->as<ompl::geometric::DRRT>()->setRange(range);
 	drrtt->as<ompl::geometric::DRRT>()->setVariant(ompl::geometric::DRRT::TREE);
+	drrtt->as<ompl::geometric::DRRT>()->setKNearest(knearest);
 	b.addPlanner(drrtt);//*
 	ompl::base::PlannerPtr drrttf(new ompl::geometric::DRRT(ss.getSpaceInformation()));
 	drrttf->as<ompl::geometric::DRRT>()->setName("DRRTtf0.3");
 	drrttf->as<ompl::geometric::DRRT>()->setRange(range);
 	drrttf->as<ompl::geometric::DRRT>()->setVariant(ompl::geometric::DRRT::TREE);
 	drrttf->as<ompl::geometric::DRRT>()->setDeformationFrequency(0.3);
+	drrttf->as<ompl::geometric::DRRT>()->setKNearest(knearest);
 	b.addPlanner(drrttf);//*/
+	// Obstacle check is not thread safe...
+    ompl::base::PlannerPtr cf(new ompl::geometric::CForest(ss.getSpaceInformation()));
+	cf->as<ompl::geometric::CForest>()->setName("CForest-DRRTtd0.3");
+	cf->as<ompl::geometric::CForest>()->setProblemDefinition(ss.getProblemDefinition());
+    const int threadsNb=8;
+    cf->as<ompl::geometric::CForest>()->setNumThreads(threadsNb);
+    cf->as<ompl::geometric::CForest>()->addPlannerInstances<ompl::geometric::DRRT>(threadsNb);
+    for(int i=0;i<threadsNb;++i){
+        auto plan= cf->as<ompl::geometric::CForest>()->getPlannerInstance(i);
+	    plan->as<ompl::geometric::DRRT>()->setRange(range);
+	    plan->as<ompl::geometric::DRRT>()->setVariant(ompl::geometric::DRRT::TREE);
+	    plan->as<ompl::geometric::DRRT>()->setDelayOptimizationUntilSolution(true);
+	    plan->as<ompl::geometric::DRRT>()->setDeformationFrequency(0.3);
+	    plan->as<ompl::geometric::DRRT>()->setKNearest(knearest);
+    }
+	b.addPlanner(cf);//*/
 	std::cout << "starting benchmark" << std::endl;
 	b.benchmark(request);
 	std::cout << "benchmark done" << std::endl;
-	b.saveResultsToFile(boost::str(boost::format("/home/florian/results/pr2arm_%i.log") % AD ).c_str());
+	b.saveResultsToFile(boost::str(boost::format("/home/flo/results/pr2arm_%i.log") % AD ).c_str());
 	//*/
 
 	/* to just run the algorithm and visualize results

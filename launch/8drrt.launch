@@ -1,7 +1,0 @@
-<launch>
-
-  	<include file="$(find msp_pr2_test)/launch/demo_flo.launch"/>
-
-	<node name="eight_dim_rrt" pkg="msp_pr2_test" type="8drrt" respawn="false" output="screen"  launch-prefix="xterm -e gdb --args">	</node> 
-
-</launch>

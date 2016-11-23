@@ -32,6 +32,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/geometric/planners/rrt/DRRT.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/RRT.h>
 
 #include <ompl/geometric/planners/rrt/RRTsharp.h>
 #include <ompl/tools/benchmark/Benchmark.h>
@@ -66,7 +67,7 @@ std::vector<double> group_variable_values_r;
 const moveit::core::JointModelGroup* group_r;
 
 bool checkCollision(robot_state::RobotState& st){
-	return !st.satisfiesBounds(group) || scene->isStateColliding(st);
+	return !st.satisfiesBounds(group_r) || !st.satisfiesBounds(group_l) || scene->isStateColliding(st);
 }
 
 void setState(robot_state::RobotState& st, std::vector<double> val_r, std::vector<double> val_l){
@@ -141,12 +142,22 @@ int main(int argc, char **argv)
 		sleep_t.sleep();
 	}
 	std::cout << "done. modifying scene" << std::endl;
+	//add Obstacles
+	sleeper5.sleep();
+	sleeper5.sleep();
+	sleeper5.sleep();
+	std::cout << "adding obstacles" << std::endl;
+	addObstaclesToPlanningScene();
+	collision_detection::CollisionRobotPtr colRob = scene->getCollisionRobotNonConst ();
+	colRob->setPadding(0.00);
+	scene->propogateRobotPadding();
+	std::cout << "done" << std::endl;
 	//robot state, change robot state
 	current_state = &(scene->getCurrentStateNonConst());
 	//set base position
 	group=kinematic_model->getJointModelGroup("base");
 	current_state->copyJointGroupPositions(group,group_variable_values);
-	group_variable_values[0] = 0.03; //set x to be close from the bookshelves
+	group_variable_values[0] = -0.25; //set x to be close from the bookshelves
 	group_variable_values[1] = -0.03; //set y
 	current_state->setJointGroupPositions(group, group_variable_values);
 	static tf::TransformBroadcaster br;
@@ -156,12 +167,6 @@ int main(int argc, char **argv)
 	q.setRPY(0, 0, 0);
 	transform.setRotation(q);
 	ros::Timer timer = node_handle.createTimer(ros::Duration(0.1), [](const ros::TimerEvent&){br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/odom_combined", "base_footprint"));});
-	//add Obstacles
-	sleeper5.sleep();
-	sleeper5.sleep();
-	std::cout << "adding obstacles" << std::endl;
-	addObstaclesToPlanningScene();
-	std::cout << "done" << std::endl;
 
 
 	//set left arm position
@@ -295,7 +300,7 @@ int main(int argc, char **argv)
 	//* to just run the algorithm and visualize results
 
 
-	ROS_INFO("RRT star planning");
+	ROS_INFO("RRT planning");
 	//space->setLongestValidSegmentFraction(0.01/(maxX(local_map->info)-minX(local_map->info)));
 	ob::SpaceInformationPtr si(new ob::SpaceInformation(space));
 	si->setStateValidityChecker(ob::StateValidityCheckerPtr(new ValidityChecker(si)));
@@ -306,10 +311,11 @@ int main(int argc, char **argv)
 
 	std::cout << "create algo" << std::endl;
 
-	auto plan_pt=new og::RRTstar(si);
+	auto plan_pt=new og::RRT(si);
+	plan_pt->setRange(0.25);
 	std::cout << "create optimizingplanner" << std::endl;
 	ob::PlannerPtr optimizingPlanner(plan_pt);
-	std::cout << "set problem defionition" << std::endl;
+	std::cout << "set problem definition" << std::endl;
 	optimizingPlanner->setProblemDefinition(pdef);
 	std::cout << "setup" << std::endl;
 	optimizingPlanner->setup();
@@ -317,7 +323,7 @@ int main(int argc, char **argv)
 	int it=0;
 	std::cout << "run algo" << std::endl;
 	timerStart=time(NULL);
-	while(solved!=ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION && it<100){
+	while(solved!=ompl::base::PlannerStatus::StatusType::EXACT_SOLUTION && it<1000){
 		it++;
 		solved = optimizingPlanner->solve(60.0);
 	}
@@ -342,6 +348,18 @@ int main(int argc, char **argv)
 		ros::Duration sleeper1(0.01);
 		State<2*AD> prev(obstateState(start.get()));
 		double pas=0.005;
+		std::string name("/home/flo/initial_guess.csv");
+		std::ofstream file(name.c_str(), std::ofstream::trunc);
+		std::cout << "File " << name << " is good : " << file.good() << std::endl;
+		for(std::deque<State<2*AD>>::iterator it=sol.begin(),end=sol.end();it!=end;++it){
+			for(int i=0;i<AD;++i){
+				file << (*it)[i] << "  " << (*it)[AD+i] << "  " ;
+				//std::cout << (*it)[i] << "  " << (*it)[AD+i] << "  " ;
+			}
+			file << std::endl;
+			//std::cout << std::endl;
+		}
+		file.close();
 		while(ros::ok()){
 			for(std::deque<State<2*AD>>::iterator it=sol.begin(),end=sol.end();it!=end;++it){
 				while((prev-*it).norm()>pas){

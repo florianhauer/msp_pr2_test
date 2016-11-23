@@ -103,7 +103,7 @@ link_directories(${catkin_LIBRARY_DIRS})
 ###########
 
 SET( CMAKE_CXX_FLAGS  "-std=c++0x" )
-SET( CMAKE_BUILD_TYPE Debug)
+SET( CMAKE_BUILD_TYPE Release)
 
 add_executable(4d src/4d.cpp)
 target_link_libraries(4d ${catkin_LIBRARIES} ${Boost_LIBRARIES})
@@ -114,9 +114,9 @@ target_link_libraries(4drrt ${catkin_LIBRARIES} ${Boost_LIBRARIES}   ${OMPL_LIBR
 #target_link_libraries(4drrt ${catkin_LIBRARIES} ${Boost_LIBRARIES}  /home/florian/workspace/ompl_integration/build/Release/lib/libompl.so)
 install(TARGETS 4drrt DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-add_executable(8drtt src/test.cpp)
-target_link_libraries(8drtt ${catkin_LIBRARIES} ${Boost_LIBRARIES}   ${OMPL_LIBRARIES})
-install(TARGETS 8drtt DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+add_executable(8d src/8d.cpp)
+target_link_libraries(8d ${catkin_LIBRARIES} ${Boost_LIBRARIES}   ${OMPL_LIBRARIES})
+install(TARGETS 8d DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 add_executable(baseandarms src/baseandarms.cpp)
 target_link_libraries(baseandarms ${catkin_LIBRARIES} ${Boost_LIBRARIES}   ${OMPL_LIBRARIES})
